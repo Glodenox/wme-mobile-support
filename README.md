@@ -20,4 +20,4 @@ TamperMonkey will occasionally check for new versions of these scripts. You will
 
 ## Feedback and suggestions
 
-Any issues found can be reported at the [GitHub project page](https://github.com/Glodenox/wme-mobile-support/issues) or in this forum thread.
+Any issues found can be reported at the [GitHub project page](https://github.com/Glodenox/wme-mobile-support/issues) or in [this forum thread](https://www.waze.com/forum/viewtopic.php?f=819&t=252997).
