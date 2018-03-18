@@ -4,7 +4,7 @@
 // @namespace   http://tomputtemans.com/
 // @description A userscript that makes the WME more useable on mobile devices
 // @include     /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor.*$/
-// @version     0.3.1
+// @version     0.3.2
 // @supportURL  https://github.com/Glodenox/wme-mobile-support/issues
 // @grant       none
 // ==/UserScript==
@@ -57,7 +57,9 @@ function enableTouchEvents() {
   if (!OpenLayers.Handler.Pinch) {
     OpenLayers.Handler.Pinch=OpenLayers.Class(OpenLayers.Handler,{started:!1,stopDown:!1,pinching:!1,last:null,start:null,touchstart:function(a){var b=!0;this.pinching=!1;OpenLayers.Event.isMultiTouch(a)?(this.started=!0,this.last=this.start={distance:this.getDistance(a.touches),delta:0,scale:1},this.callback("start",[a,this.start]),b=!this.stopDown):(this.started=!1,this.last=this.start=null);OpenLayers.Event.stop(a);return b},touchmove:function(a){if(this.started&&OpenLayers.Event.isMultiTouch(a)){this.pinching=!0;var b=this.getPinchData(a);this.callback("move",[a,b]);this.last=b;OpenLayers.Event.stop(a)}return!0},touchend:function(a){this.started&&(this.pinching=this.started=!1,this.callback("done",[a,this.start,this.last]),this.last=this.start=null);return!0},activate:function(){var a=!1;OpenLayers.Handler.prototype.activate.apply(this,arguments)&&(this.pinching=!1,a=!0);return a},deactivate:function(){var a=!1;OpenLayers.Handler.prototype.deactivate.apply(this,arguments)&&(this.pinching=this.started=!1,this.last=this.start=null,a=!0);return a},getDistance:function(a){var b=a[0],a=a[1];return Math.sqrt(Math.pow(b.clientX-a.clientX,2)+Math.pow(b.clientY-a.clientY,2))},getPinchData:function(a){a=this.getDistance(a.touches);return{distance:a,delta:this.last.distance-a,scale:a/this.start.distance}},CLASS_NAME:"OpenLayers.Handler.Pinch"});
   }
-  W.map.controls.find(control => control.displayClass == 'olControlNavigation').draw();
+  var navigationControl = W.map.controls.find(control => control.displayClass == 'olControlNavigation');
+  navigationControl.draw();
+  navigationControl.activate();
 }
 
 function applyStyles() {
