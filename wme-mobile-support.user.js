@@ -4,7 +4,7 @@
 // @namespace   http://tomputtemans.com/
 // @description A userscript that makes the WME more useable on mobile devices
 // @include     /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor.*$/
-// @version     0.3.3
+// @version     0.3.4
 // @supportURL  https://github.com/Glodenox/wme-mobile-support/issues
 // @grant       none
 // ==/UserScript==
@@ -77,7 +77,7 @@ function applyStyles() {
   .modal-open #editor-container #WazeMap { height: calc(100vh - 46px) !important }
 
   /* Hide a lot of stuff */
-  .login-popup-links, .language-select, .welcome-message p, .title-text, .topbar .area-managers-region, .olControlPanZoomBar, #links, #advanced-tools, .WazeControlMousePosition, #user-box, #chat-overlay, .google-permalink { display: none !important }
+  .login-popup-links, .language-select, .welcome-message p, .title-text, .topbar .area-managers-region, .olControlPanZoomBar, #links, #advanced-tools, .WazeControlMousePosition, #user-box, #chat-overlay, .google-permalink, .WazeControlPermalink { display: none !important }
 
   /* Set the default width to several objects so they don't stretch the page */
   #editor-container, #editor-container #map { min-width: auto }
@@ -112,10 +112,7 @@ function applyStyles() {
   #toolbar .toolbar, #edit-buttons { min-width: auto }
 
   /* Adjust map controls */
-  #WazeMap .zoom-controls { position: absolute; bottom: 35px; right: 5px; z-index: 1000 }
-  #WazeMap .zoom-controls button:first-child { position: absolute; bottom: 33px }
-  #WazeMap .zoom-controls button { font-size: 1.3em }
-  #WazeMap .full-screen { position: absolute; bottom: 115px; right: 5px; z-index: 1000; font-size: 1.3em }
+  #WazeMap .full-screen { position: absolute; bottom: 35px; right: 5px; z-index: 1000; font-size: 1.3em }
 }`;
   }
   if (!styleElement.parentNode) {
@@ -142,22 +139,6 @@ function applyStyles() {
     addStickyClasses(document.querySelector('#edit-buttons .toolbar-button.waze-icon-undo'), ['fa', 'fa-chevron-left']);
   };
   adjustToolbar();
-
-  var zoomControls = document.createElement('div');
-  zoomControls.classList.add('zoom-controls');
-  var zoomInButton = document.createElement('button');
-  zoomInButton.classList.add('fa', 'fa-plus');
-  zoomInButton.addEventListener('click', function() {
-    W.map.zoomIn();
-  });
-  zoomControls.appendChild(zoomInButton);
-  var zoomOutButton = document.createElement('button');
-  zoomOutButton.classList.add('fa', 'fa-minus');
-  zoomOutButton.addEventListener('click', function() {
-    W.map.zoomOut();
-  });
-  zoomControls.appendChild(zoomOutButton);
-  document.querySelector('#WazeMap').appendChild(zoomControls);
 
   var fullScreenButton = document.createElement('button');
   fullScreenButton.classList.add('full-screen', 'fa', 'fa-arrows-alt');
