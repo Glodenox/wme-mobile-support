@@ -4,7 +4,7 @@
 // @namespace   http://tomputtemans.com/
 // @description A userscript that makes the WME more useable on mobile devices
 // @include     /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor.*$/
-// @version     0.3.0
+// @version     0.3.1
 // @supportURL  https://github.com/Glodenox/wme-mobile-support/issues
 // @grant       none
 // ==/UserScript==
@@ -23,16 +23,17 @@ function init(e) {
     return;
   }
   if (!W.loginManager.user) {
-    W.loginManager.events.register("login", null, performScript);
-    W.loginManager.events.register("loginStatus", null, performScript);
+    W.loginManager.events.register("login", null, applyStyles);
+    W.loginManager.events.register("loginStatus", null, applyStyles);
   }
   var viewportMeta = document.createElement('meta');
   viewportMeta.name = 'viewport';
   viewportMeta.content = 'width=device-width, initial-scale=1';
   document.head.appendChild(viewportMeta);
 
+  enableTouchEvents();
   setModeChangeListener();
-  performScript();
+  applyStyles();
 }
 
 // Attempt to hook into the controller that can notify us whenever the editor's mode changes
@@ -43,12 +44,23 @@ function setModeChangeListener() {
   }
   W.app.modeController.model.bind('change:mode', function(model, modeId) {
     if (modeId == 0) { // 0 = Default, 1 = Events
-      performScript();
+      applyStyles();
     }
   });
 }
 
-function performScript() {
+// Add the missing OpenLayers classes for touch navigation and enable them
+function enableTouchEvents() {
+  if (!OpenLayers.Control.PinchZoom) {
+    OpenLayers.Control.PinchZoom=OpenLayers.Class(OpenLayers.Control,{type:OpenLayers.Control.TYPE_TOOL,containerCenter:null,pinchOrigin:null,currentCenter:null,autoActivate:!0,initialize:function(a){OpenLayers.Control.prototype.initialize.apply(this,arguments);this.handler=new OpenLayers.Handler.Pinch(this,{start:this.pinchStart,move:this.pinchMove,done:this.pinchDone},this.handlerOptions)},activate:function(){var a=OpenLayers.Control.prototype.activate.apply(this,arguments);a&&(this.map.events.on({moveend:this.updateContainerCenter,scope:this}),this.updateContainerCenter());return a},deactivate:function(){var a=OpenLayers.Control.prototype.deactivate.apply(this,arguments);this.map&&this.map.events&&this.map.events.un({moveend:this.updateContainerCenter,scope:this});return a},updateContainerCenter:function(){var a=this.map.layerContainerDiv;this.containerCenter={x:parseInt(a.style.left,10)+50,y:parseInt(a.style.top,10)+50}},pinchStart:function(a){this.currentCenter=this.pinchOrigin=a.xy},pinchMove:function(a,b){var c=b.scale,d=this.containerCenter,e=this.pinchOrigin,f=a.xy,g=Math.round(f.x-e.x+(c-1)*(d.x-e.x)),d=Math.round(f.y-e.y+(c-1)*(d.y-e.y));this.applyTransform("translate("+g+"px, "+d+"px) scale("+c+")");this.currentCenter=f},applyTransform:function(a){var b=this.map.layerContainerDiv.style;b["-webkit-transform"]=a;b["-moz-transform"]=a},pinchDone:function(a,b,c){this.applyTransform("");a=this.map.getZoomForResolution(this.map.getResolution()/c.scale,!0);if(a!==this.map.getZoom()||!this.currentCenter.equals(this.pinchOrigin)){var b=this.map.getResolutionForZoom(a),c=this.map.getLonLatFromPixel(this.pinchOrigin),d=this.currentCenter,e=this.map.getSize();c.lon+=b*(e.w/2-d.x);c.lat-=b*(e.h/2-d.y);this.map.div.clientWidth=this.map.div.clientWidth;this.map.setCenter(c,a)}},CLASS_NAME:"OpenLayers.Control.PinchZoom"});
+  }
+  if (!OpenLayers.Handler.Pinch) {
+    OpenLayers.Handler.Pinch=OpenLayers.Class(OpenLayers.Handler,{started:!1,stopDown:!1,pinching:!1,last:null,start:null,touchstart:function(a){var b=!0;this.pinching=!1;OpenLayers.Event.isMultiTouch(a)?(this.started=!0,this.last=this.start={distance:this.getDistance(a.touches),delta:0,scale:1},this.callback("start",[a,this.start]),b=!this.stopDown):(this.started=!1,this.last=this.start=null);OpenLayers.Event.stop(a);return b},touchmove:function(a){if(this.started&&OpenLayers.Event.isMultiTouch(a)){this.pinching=!0;var b=this.getPinchData(a);this.callback("move",[a,b]);this.last=b;OpenLayers.Event.stop(a)}return!0},touchend:function(a){this.started&&(this.pinching=this.started=!1,this.callback("done",[a,this.start,this.last]),this.last=this.start=null);return!0},activate:function(){var a=!1;OpenLayers.Handler.prototype.activate.apply(this,arguments)&&(this.pinching=!1,a=!0);return a},deactivate:function(){var a=!1;OpenLayers.Handler.prototype.deactivate.apply(this,arguments)&&(this.pinching=this.started=!1,this.last=this.start=null,a=!0);return a},getDistance:function(a){var b=a[0],a=a[1];return Math.sqrt(Math.pow(b.clientX-a.clientX,2)+Math.pow(b.clientY-a.clientY,2))},getPinchData:function(a){a=this.getDistance(a.touches);return{distance:a,delta:this.last.distance-a,scale:a/this.start.distance}},CLASS_NAME:"OpenLayers.Handler.Pinch"});
+  }
+  W.map.controls.find(control => control.displayClass == 'olControlNavigation').draw();
+}
+
+function applyStyles() {
   if (!styleElement) {
     styleElement = document.createElement('style');
     styleElement.textContent = `@media screen and (max-width: 1000px) {
@@ -148,9 +160,14 @@ function performScript() {
   var fullScreenButton = document.createElement('button');
   fullScreenButton.classList.add('full-screen', 'fa', 'fa-arrows-alt');
   fullScreenButton.addEventListener('click', function() {
-    var docEl = window.document.documentElement;
+    var docEl = document.documentElement;
     var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
-    requestFullScreen.call(docEl);
+    var cancelFullScreen = document.exitFullscreen || document.mozCancelFullScreen || document.webkitExitFullscreen || document.msExitFullscreen;
+    if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+      requestFullScreen.call(docEl);
+    } else {
+      cancelFullScreen.call(doc);
+    }
   });
   document.querySelector('#WazeMap').appendChild(fullScreenButton);
 }
