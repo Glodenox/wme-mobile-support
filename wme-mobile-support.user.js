@@ -4,7 +4,7 @@
 // @namespace   http://tomputtemans.com/
 // @description A userscript that makes the WME more useable on mobile devices
 // @include     /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor.*$/
-// @version     0.3.2
+// @version     0.3.3
 // @supportURL  https://github.com/Glodenox/wme-mobile-support/issues
 // @grant       none
 // ==/UserScript==
@@ -168,7 +168,7 @@ function applyStyles() {
     if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
       requestFullScreen.call(docEl);
     } else {
-      cancelFullScreen.call(doc);
+      cancelFullScreen.call(document);
     }
   });
   document.querySelector('#WazeMap').appendChild(fullScreenButton);
