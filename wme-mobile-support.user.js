@@ -4,7 +4,7 @@
 // @namespace   http://tomputtemans.com/
 // @description A userscript that makes the WME more useable on mobile devices
 // @include     /^https:\/\/(www|beta)\.waze\.com\/(?!user\/)(.{2,6}\/)?editor.*$/
-// @version     0.3.5
+// @version     0.3.6
 // @supportURL  https://github.com/Glodenox/wme-mobile-support/issues
 // @grant       none
 // ==/UserScript==
@@ -32,21 +32,8 @@ function init(e) {
   document.head.appendChild(viewportMeta);
 
   enableTouchEvents();
-  setModeChangeListener();
+  //fixSelection(); // disabled as it doesn't really work as hoped
   applyStyles();
-}
-
-// Attempt to hook into the controller that can notify us whenever the editor's mode changes
-function setModeChangeListener() {
-  if (!W.app || !W.app.modeController) {
-    setTimeout(setModeChangeListener, 400);
-    return;
-  }
-  W.app.modeController.model.bind('change:mode', function(model, modeId) {
-    if (modeId == 0) { // 0 = Default, 1 = Events
-      applyStyles();
-    }
-  });
 }
 
 // Add the missing OpenLayers classes for touch navigation and enable them
